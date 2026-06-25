@@ -2,26 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    @apply bg-ivory text-ink font-sans;
+    font-feature-settings: "kern", "liga";
+  }
+
+  h1,
+  h2,
+  h3 {
+    /* color intentionally inherits from the section (ink on light, ivory on dark) */
+    @apply font-display font-light;
+    letter-spacing: -0.01em;
+  }
+
+  /* Offset in-page anchors for the fixed nav */
+  section[id],
+  div[id] {
+    scroll-margin-top: 84px;
+  }
+
+  ::selection {
+    background: #9a7b4f;
+    color: #f6f2ea;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .container-lux {
+    @apply mx-auto w-full max-w-container px-6 sm:px-8 lg:px-12;
+  }
+
+  .eyebrow {
+    @apply font-sans text-[11px] font-medium uppercase tracking-label text-bronze;
+  }
+
+  .eyebrow-light {
+    @apply font-sans text-[11px] font-medium uppercase tracking-label text-bronze-light;
+  }
+
+  /* Hairline buttons — restrained luxury */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 border border-ink/30 bg-transparent px-7 py-3
+      font-sans text-[12px] font-medium uppercase tracking-wide text-ink
+      transition-all duration-500 ease-lux hover:border-ink hover:bg-ink hover:text-ivory;
+  }
+
+  .btn-solid {
+    @apply inline-flex items-center justify-center gap-2 border border-ink bg-ink px-7 py-3
+      font-sans text-[12px] font-medium uppercase tracking-wide text-ivory
+      transition-all duration-500 ease-lux hover:bg-transparent hover:text-ink;
+  }
+
+  .btn-light {
+    @apply inline-flex items-center justify-center gap-2 border border-ivory/40 bg-transparent px-7 py-3
+      font-sans text-[12px] font-medium uppercase tracking-wide text-ivory
+      transition-all duration-500 ease-lux hover:border-ivory hover:bg-ivory hover:text-ink;
+  }
+
+  /* Quiet text link with bronze underline reveal */
+  .link-underline {
+    @apply relative inline-flex items-center gap-2 font-sans text-[12px] font-medium uppercase tracking-wide;
+  }
+  .link-underline::after {
+    content: "";
+    @apply absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-current transition-transform duration-500 ease-lux;
+  }
+  .link-underline:hover::after {
+    @apply scale-x-100;
+  }
+
+  .hairline {
+    @apply h-px w-full bg-line;
+  }
+
+  .section-pad {
+    @apply py-24 md:py-32;
+  }
+
+  /* Scroll-reveal initial state (activated by Reveal component) */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-slow-zoom,
+  .animate-fade-up,
+  .animate-fade-in {
+    animation: none !important;
   }
 }

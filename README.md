@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Abbasi Industries — Official Website
 
-## Getting Started
+Marketing website for **Abbasi Log Estates LLC, doing business as Abbasi Industries** — a vertically integrated real estate, hospitality, and technology operating company headquartered in Salt Lake City, Utah.
 
-First, run the development server:
+Built with **Next.js 14 (App Router) + TypeScript + Tailwind CSS**, exported as a fully static site and deployed on **Vercel**.
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # static export to ./out
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/app/         routes: / (home), /contact, /privacy, /terms, + robots/sitemap/og/icon
+src/components/  bespoke UI (Hero, Services, Spotlight, Technology, Markets, Leadership, …)
+src/data/        site.ts (business identity), services.ts, markets.ts, team.ts
+public/images/   AI-generated section imagery (swap-ready)
+public/team/     leadership headshots
+scripts/         gen-images.mjs — regenerates imagery via OpenAI gpt-image-1
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Editing content
 
-## Learn More
+Almost everything is data-driven — edit the files in `src/data/`:
 
-To learn more about Next.js, take a look at the following resources:
+- **Business identity** (name, address, email, phone, domain): `src/data/site.ts`
+- **Services / technology / process**: `src/data/services.ts`
+- **Markets / focus areas**: `src/data/markets.ts`
+- **Leadership**: `src/data/team.ts`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Adding real leadership photos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Both principals currently render an elegant monogram placeholder. To use real
+headshots, drop a portrait at `public/team/taha.jpg` / `public/team/nichell.jpg`
+and set the `photo` field for that person in `src/data/team.ts`.
 
-## Deploy on Vercel
+### Regenerating imagery
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`scripts/gen-images.mjs` generates the section imagery with OpenAI `gpt-image-1`.
+It reads `OPENAI_API_KEY` from the environment (or a local `.env`). To replace any
+image with a real property photo, just drop a JPEG at the matching path in
+`public/images/` — the components read paths from `src/data/`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Custom domain
+
+The canonical URL is set in `src/data/site.ts` (`site.url`). After attaching the
+domain in **Vercel → Settings → Domains**, confirm `site.url` matches the apex,
+then redeploy so `metadata`, `sitemap.xml`, `robots.txt`, and the JSON-LD all
+reference the live domain.
+
+## Notes
+
+- `Privacy Policy` and `Terms of Service` are reasonable boilerplate — recommend a
+  legal review before relying on them.
+- The site is fully static (`output: 'export'`); there is no backend.
