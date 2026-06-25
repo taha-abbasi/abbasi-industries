@@ -37,7 +37,8 @@ export default function Nav() {
   const solid = scrolled || !isHome;
 
   return (
-    <header
+    <>
+      <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-lux ${
         solid
           ? "border-b border-line/80 bg-ivory/95 backdrop-blur-sm py-3"
@@ -80,8 +81,12 @@ export default function Nav() {
           <Icon name="menu" width={26} height={26} />
         </button>
       </nav>
+      </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — rendered as a sibling of <header>, not a child: the
+          header's backdrop-blur creates a containing block that would otherwise
+          break this position:fixed overlay (it stopped covering the viewport
+          when scrolled, leaving the menu unreadable past the hero). */}
       <div
         className={`fixed inset-0 z-[60] bg-earth text-ivory transition-opacity duration-500 ease-lux lg:hidden ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
@@ -121,6 +126,6 @@ export default function Nav() {
           </a>
         </div>
       </div>
-    </header>
+    </>
   );
 }
