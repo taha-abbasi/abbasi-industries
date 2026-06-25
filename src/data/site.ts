@@ -2,8 +2,8 @@
 
 export const site = {
   name: "Abbasi Industries",
-  legalName: "Abbasi Log Estates LLC",
-  dba: "Abbasi Log Estates LLC, doing business as Abbasi Industries",
+  legalName: "Abbasi Logue Estates, LLC",
+  dba: "Abbasi Logue Estates, LLC, doing business as Abbasi Industries",
   tagline: "Real estate, hospitality, and the technology that runs them.",
   description:
     "Abbasi Industries is a vertically integrated operating company building and managing short-term rentals, glamping resorts, and real-estate ventures on proprietary automation infrastructure. Headquartered in Salt Lake City, Utah, expanding to strategic markets nationwide.",

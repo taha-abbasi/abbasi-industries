@@ -1,6 +1,6 @@
 # Abbasi Industries — Official Website
 
-Marketing website for **Abbasi Log Estates LLC, doing business as Abbasi Industries** — a vertically integrated real estate, hospitality, and technology operating company headquartered in Salt Lake City, Utah.
+Marketing website for **Abbasi Logue Estates, LLC, doing business as Abbasi Industries** — a vertically integrated real estate, hospitality, and technology operating company headquartered in Salt Lake City, Utah.
 
 Built with **Next.js 14 (App Router) + TypeScript + Tailwind CSS**, exported as a fully static site and deployed on **Vercel**.
 
