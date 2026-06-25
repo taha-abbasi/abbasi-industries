@@ -32,11 +32,11 @@ Almost everything is data-driven — edit the files in `src/data/`:
 - **Markets / focus areas**: `src/data/markets.ts`
 - **Leadership**: `src/data/team.ts`
 
-### Adding real leadership photos
+### Leadership photos
 
-Both principals currently render an elegant monogram placeholder. To use real
-headshots, drop a portrait at `public/team/taha.jpg` / `public/team/nichell.jpg`
-and set the `photo` field for that person in `src/data/team.ts`.
+Real headshots live at `public/team/taha.jpg` and `public/team/nichell.jpg`,
+wired up via the `photo` field in `src/data/team.ts`. To swap a photo, replace the
+file (4:5 portrait works best). Clearing `photo` falls back to an elegant monogram.
 
 ### Regenerating imagery
 
