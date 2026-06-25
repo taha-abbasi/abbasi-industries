@@ -19,8 +19,9 @@ export const site = {
     postal: "84101",
     country: "US",
   },
-  // TODO: domain — confirmed apex once the user attaches it in Vercel.
-  url: "https://abbasiindustries.com",
+  // Canonical host = the domain attached in Vercel (www). Drives metadataBase,
+  // canonical, OG/Twitter image URLs, sitemap, robots, and JSON-LD.
+  url: "https://www.abbasiindustries.com",
   foundingYear: 2024,
 } as const;
 
