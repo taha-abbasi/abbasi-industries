@@ -1,41 +1,43 @@
 "use client";
-import type { Computed, RunwayModel } from "@/lib/runway/types";
+import type { RunwayModel } from "@/lib/runway/types";
+import type { View } from "@/lib/runway/model";
 import { avgOf, money } from "@/lib/runway/format";
 
 type Tone = "pos" | "warn" | "crit" | "";
 
-export default function Tiles({ model, c }: { model: RunwayModel; c: Computed }) {
-  const n = model.months.length;
-  const end = c.bal[n - 1] ?? 0;
+export default function Tiles({ model, view }: { model: RunwayModel; view: View }) {
+  const n = view.months.length;
+  const end = view.bal[n - 1] ?? 0;
   let minI = 0;
-  c.bal.forEach((b, i) => { if (b < c.bal[minI]) minI = i; });
-  const avgNet = avgOf(c.net);
-  const avgSpend = avgOf(c.spend);
-  const negI = c.bal.findIndex((b) => b < 0);
-  const dry = avgSpend > 0 ? model.startCash / avgSpend : Infinity;
+  view.bal.forEach((b, i) => { if (b < view.bal[minI]) minI = i; });
+  const avgNet = avgOf(view.net);
+  const avgSpend = avgOf(view.spend);
+  const negI = view.bal.findIndex((b) => b < 0);
+  const dry = avgSpend > 0 ? view.opening / avgSpend : Infinity;
+  const archived = model.hiddenMonths.length;
 
   const tiles: { label: string; value: string; tone: Tone; foot: string }[] = [
     {
-      label: `Ending cash · ${model.months[n - 1] ?? ""}`,
+      label: `Ending cash · ${view.months[n - 1] ?? ""}`,
       value: money(end),
       tone: end < 0 ? "crit" : "pos",
-      foot: `From ${money(model.startCash)} opening.`,
+      foot: `From ${money(view.opening)} carried into ${view.months[0]}.`,
     },
     {
       label: "Low point",
-      value: money(c.bal[minI] ?? 0),
-      tone: (c.bal[minI] ?? 0) < 0 ? "crit" : (c.bal[minI] ?? 0) < avgSpend ? "warn" : "",
+      value: money(view.bal[minI] ?? 0),
+      tone: (view.bal[minI] ?? 0) < 0 ? "crit" : (view.bal[minI] ?? 0) < avgSpend ? "warn" : "",
       foot:
-        model.months[minI] +
-        ((c.bal[minI] ?? 0) < 0
+        view.months[minI] +
+        ((view.bal[minI] ?? 0) < 0
           ? " — the deepest point of the hole."
-          : (c.bal[minI] ?? 0) < avgSpend
+          : (view.bal[minI] ?? 0) < avgSpend
           ? " — under one month of spend."
           : " — the tightest month."),
     },
     negI === -1
-      ? { label: "Runway", value: `${n}+ mo`, tone: "pos", foot: `Cash never goes negative through ${model.months[n - 1]}.` }
-      : { label: "Runway", value: `${negI} mo`, tone: "crit", foot: `Cash first goes negative in ${model.months[negI]}.` },
+      ? { label: "Runway", value: `${n}+ mo`, tone: "pos", foot: `Cash never goes negative through ${view.months[n - 1]}.` }
+      : { label: "Runway", value: `${negI} mo`, tone: "crit", foot: `Cash first goes negative in ${view.months[negI]}.` },
     {
       label: "Runway without income",
       value: Number.isFinite(dry) ? `${Math.max(0, dry).toFixed(1)} mo` : "—",
@@ -46,7 +48,9 @@ export default function Tiles({ model, c }: { model: RunwayModel; c: Computed })
       label: "Average monthly net",
       value: money(avgNet),
       tone: avgNet < 0 ? "crit" : "pos",
-      foot: `${avgNet < 0 ? "Burning " : "Building "}${money(Math.abs(avgNet))} a month on average.`,
+      foot:
+        `${avgNet < 0 ? "Burning " : "Building "}${money(Math.abs(avgNet))} a month` +
+        (archived ? ` across the ${n} months on screen.` : " on average."),
     },
   ];
 

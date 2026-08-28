@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RunwayModel } from "@/lib/runway/types";
-import { SEED, clone, compute, normalise } from "@/lib/runway/model";
+import { SEED, clone, compute, normalise, project } from "@/lib/runway/model";
 import { money } from "@/lib/runway/format";
 import Tiles from "./parts/Tiles";
 import Chart from "./parts/Chart";
@@ -19,6 +19,7 @@ export default function RunwayApp() {
   const [model, setModel] = useState<RunwayModel | null>(null);
   const [status, setStatus] = useState("");
   const [persisted, setPersisted] = useState(true);
+  const [revealHidden, setRevealHidden] = useState(false);
 
   const history = useRef<string[]>([]);
   const hIndex = useRef(-1);
@@ -45,6 +46,9 @@ export default function RunwayApp() {
   }, []);
 
   /* -------------------------------------------------------------- saving */
+  const persistedRef = useRef(true);
+  useEffect(() => { persistedRef.current = persisted; }, [persisted]);
+
   const persist = useCallback((next: RunwayModel) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -53,7 +57,9 @@ export default function RunwayApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: next }),
       })
-        .then((r) => setStatus(r.ok ? "Saved" : "Save failed"))
+        .then((r) =>
+          setStatus(!r.ok ? "Save failed" : persistedRef.current ? "Saved" : "Not saved — no store")
+        )
         .catch(() => setStatus("Save failed"));
     }, 600);
   }, []);
@@ -117,12 +123,18 @@ export default function RunwayApp() {
   }, [status]);
 
   const c = useMemo(() => (model ? compute(model) : null), [model]);
+  const view = useMemo(() => (model && c ? project(model, c, revealHidden) : null), [model, c, revealHidden]);
 
-  if (!model || !c) {
+  if (!model || !c || !view) {
     return <p className="px-6 py-24 text-center text-sm text-stone">Loading the model…</p>;
   }
 
   const n = model.months.length;
+  const archived = model.hiddenMonths.length;
+  const hideMonth = (label: string) =>
+    apply((m) => { if (!m.hiddenMonths.includes(label) && m.hiddenMonths.length < m.months.length - 1) m.hiddenMonths.push(label); });
+  const unhideMonth = (label: string) =>
+    apply((m) => { m.hiddenMonths = m.hiddenMonths.filter((x) => x !== label); });
   const canUndo = hIndex.current > 0;
   const canRedo = hIndex.current < history.current.length - 1;
 
@@ -150,16 +162,16 @@ export default function RunwayApp() {
 
   const exportCsv = () => {
     const q = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
-    const lines = [[q("Section"), q("Line item"), q("Note"), ...model.months.map(q)].join(",")];
+    const lines = [[q("Section"), q("Line item"), q("Note"), ...view.months.map(q)].join(",")];
     model.groups.forEach((g) => g.rows.forEach((r) => {
       const sign = g.kind === "income" ? 1 : -1;
-      lines.push([q(g.name), q(r.name), q(r.note), ...r.v.map((v) => (v * sign).toFixed(2))].join(","));
+      lines.push([q(g.name), q(r.name), q(r.note), ...view.idx.map((i) => (r.v[i] * sign).toFixed(2))].join(","));
     }));
     lines.push("");
-    lines.push([q(""), q("Total in"), q(""), ...c.income.map((v) => v.toFixed(2))].join(","));
-    lines.push([q(""), q("Total out"), q(""), ...c.spend.map((v) => (-v).toFixed(2))].join(","));
-    lines.push([q(""), q("Net for the month"), q(""), ...c.net.map((v) => v.toFixed(2))].join(","));
-    lines.push([q(""), q("Cash on hand, end of month"), q(""), ...c.bal.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Total in"), q(""), ...view.income.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Total out"), q(""), ...view.spend.map((v) => (-v).toFixed(2))].join(","));
+    lines.push([q(""), q("Net for the month"), q(""), ...view.net.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Cash on hand, end of month"), q(""), ...view.bal.map((v) => v.toFixed(2))].join(","));
     download("ale-cash-runway.csv", lines.join("\n"), "text/csv");
     setStatus("CSV downloaded");
   };
@@ -194,7 +206,9 @@ export default function RunwayApp() {
         </div>
         <div className="flex flex-col items-start gap-2">
           <p className="font-mono text-[12.5px] text-ink-soft">
-            <b>{model.months[0]}</b> → <b>{model.months[n - 1]}</b> · {n} {n === 1 ? "month" : "months"}
+            <b>{view.months[0]}</b> → <b>{view.months[view.months.length - 1]}</b> ·{" "}
+            {view.months.length} {view.months.length === 1 ? "month" : "months"}
+            {archived > 0 && <span className="text-stone"> · {archived} archived</span>}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <button className={btn} onClick={undo} disabled={!canUndo} title="Undo (⌘Z)">↶ Undo</button>
@@ -209,14 +223,26 @@ export default function RunwayApp() {
         </div>
       </header>
 
-      <Tiles model={model} c={c} />
+      <Tiles model={model} view={view} />
+
+      {archived > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line border-l-[3px] border-l-bronze bg-[#F0E7D6] px-4 py-3 text-[13px] text-ink-soft">
+          <span>
+            <b>{archived} {archived === 1 ? "month" : "months"} archived</b> — {model.hiddenMonths.join(", ")}.
+            Still counted in every total; {view.months[0]} opens with {money(view.opening)} carried in.
+          </span>
+          <button className={btn} onClick={() => setRevealHidden((v) => !v)}>
+            {revealHidden ? "Hide them again" : "Show archived months"}
+          </button>
+        </div>
+      )}
 
       <section className="rounded-lg border border-line bg-bone">
         <div className="flex flex-wrap items-baseline justify-between gap-2.5 border-b border-line px-6 py-3.5">
           <h2 className="font-display text-xl font-normal">Cash on hand, end of month</h2>
           <span className="text-xs text-stone">Dashed line marks zero. The red ring marks the low point.</span>
         </div>
-        <div className="px-6 py-4"><Chart model={model} c={c} /></div>
+        <div className="px-6 py-4"><Chart view={view} /></div>
       </section>
 
       <section className="rounded-lg border border-line bg-bone">
@@ -237,7 +263,9 @@ export default function RunwayApp() {
           <span className="text-xs text-stone">Expenses are entered as positive amounts — they are subtracted from cash.</span>
         </div>
         <Ledger
-          model={model} c={c}
+          model={model} view={view}
+          onHideMonth={hideMonth}
+          onUnhideMonth={unhideMonth}
           onCell={(g, r, m, v) => apply((d) => { d.groups[g].rows[r].v[m] = v; })}
           onRowField={(g, r, f, v) => apply((d) => {
             const row = d.groups[g].rows[r];
@@ -252,7 +280,8 @@ export default function RunwayApp() {
         />
         <div className="border-t border-line px-6 py-3 text-xs text-stone">
           Ending cash = opening cash + income − expenses, carried into the next month.
-          Lowest point so far: {money(Math.min(...c.bal))}.
+          Use the − beside a month heading to archive it once it has passed; the figures stay in the totals.
+          {archived > 0 && ` Lowest point across all ${n} months: ${money(Math.min(...c.bal))}.`}
         </div>
       </section>
     </div>

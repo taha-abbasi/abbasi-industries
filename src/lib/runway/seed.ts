@@ -9,6 +9,7 @@ export const SEED: RunwayModel = {
   seedVersion: SEED_VERSION,
   startCash: 4000,
   levers: { inc: 100, exp: 100, stop: 0 },
+  hiddenMonths: [],
   months: ["Aug 2026","Sep 2026","Oct 2026","Nov 2026","Dec 2026","Jan 2027"],
   groups: [
     { name:"Income", kind:"income", rows:[

@@ -22,6 +22,8 @@ export type RunwayModel = {
   seedVersion: string;
   startCash: number;
   months: string[];
+  /** Month labels archived out of view. They still count in every calculation. */
+  hiddenMonths: string[];
   groups: Group[];
   levers: Levers;
 };

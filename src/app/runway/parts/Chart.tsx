@@ -1,10 +1,10 @@
 "use client";
-import type { Computed, RunwayModel } from "@/lib/runway/types";
+import type { View } from "@/lib/runway/model";
 import { fmt0, money } from "@/lib/runway/format";
 
-export default function Chart({ model, c }: { model: RunwayModel; c: Computed }) {
+export default function Chart({ view }: { view: View }) {
   const W = 900, H = 260, L = 64, R = 22, T = 22, B = 34;
-  const vals = c.bal;
+  const vals = view.bal;
   const cnt = vals.length;
   if (!cnt) return null;
 
@@ -70,7 +70,7 @@ export default function Chart({ model, c }: { model: RunwayModel; c: Computed })
               {money(vals[i])}
             </text>
             <text x={p[0]} y={H - 10} textAnchor="middle" className="font-mono" fontSize={10.5} fill="#8C8378">
-              {model.months[i]?.replace(" 20", "’")}
+              {view.months[i]?.replace(" 20", "’")}
             </text>
           </g>
         );
