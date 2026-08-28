@@ -135,6 +135,31 @@ export default function RunwayApp() {
     apply((m) => { if (!m.hiddenMonths.includes(label) && m.hiddenMonths.length < m.months.length - 1) m.hiddenMonths.push(label); });
   const unhideMonth = (label: string) =>
     apply((m) => { m.hiddenMonths = m.hiddenMonths.filter((x) => x !== label); });
+
+  // "on 1st Sep you go and hide Aug" — in one click
+  const monthOrder = (label: string) => {
+    const [mon, yr] = label.split(" ");
+    const i = MONTHS.indexOf(mon);
+    const y = parseInt(yr, 10);
+    return i < 0 || !Number.isFinite(y) ? null : y * 12 + i;
+  };
+  const now = new Date();
+  const thisMonth = now.getFullYear() * 12 + now.getMonth();
+  const pastMonths = model.months.filter((label) => {
+    const o = monthOrder(label);
+    return o !== null && o < thisMonth && !model.hiddenMonths.includes(label);
+  });
+  const archivePast = () => {
+    if (!pastMonths.length) return;
+    apply((m) => {
+      const keep = m.months.length - 1;
+      for (const label of pastMonths) {
+        if (m.hiddenMonths.length >= keep) break;
+        if (!m.hiddenMonths.includes(label)) m.hiddenMonths.push(label);
+      }
+    });
+    setStatus(`Archived ${pastMonths.length} past ${pastMonths.length === 1 ? "month" : "months"}`);
+  };
   const canUndo = hIndex.current > 0;
   const canRedo = hIndex.current < history.current.length - 1;
 
@@ -200,9 +225,6 @@ export default function RunwayApp() {
             Abbasi Logue Estates
           </p>
           <h1 className="font-display text-5xl font-light text-ink">Cash Runway</h1>
-          <p className="mt-2 max-w-[58ch] text-[13.5px] text-stone">
-            Every figure is editable and recalculates on the spot. Shared — Taha and Asad see the same numbers.
-          </p>
         </div>
         <div className="flex flex-col items-start gap-2">
           <p className="font-mono text-[12.5px] text-ink-soft">
@@ -216,6 +238,12 @@ export default function RunwayApp() {
             <span className="mx-0.5 h-5 w-px bg-line" aria-hidden />
             <button className={btn} onClick={addMonth}>+ Add month</button>
             <button className={btn} onClick={dropMonth} disabled={n <= 1}>− Remove {model.months[n - 1]}</button>
+            {pastMonths.length > 0 && (
+              <button className={btn} onClick={archivePast}
+                      title={`Archive ${pastMonths.join(", ")} — they stay in the totals`}>
+                Archive {pastMonths.length} past {pastMonths.length === 1 ? "month" : "months"}
+              </button>
+            )}
             <button className={btn} onClick={exportCsv}>Export CSV</button>
             <button className={btnStrong} onClick={resetBaseline}>Reset to baseline</button>
           </div>
@@ -260,7 +288,10 @@ export default function RunwayApp() {
       <section className="rounded-lg border border-line bg-bone">
         <div className="flex flex-wrap items-baseline justify-between gap-2.5 border-b border-line px-6 py-3.5">
           <h2 className="font-display text-xl font-normal">The ledger</h2>
-          <span className="text-xs text-stone">Expenses are entered as positive amounts — they are subtracted from cash.</span>
+          <span className="text-xs text-stone">
+            Expenses are entered as positive amounts. Use <b>Archive</b> beside a month heading to take it
+            off screen — it still counts in every total.
+          </span>
         </div>
         <Ledger
           model={model} view={view}
@@ -280,7 +311,6 @@ export default function RunwayApp() {
         />
         <div className="border-t border-line px-6 py-3 text-xs text-stone">
           Ending cash = opening cash + income − expenses, carried into the next month.
-          Use the − beside a month heading to archive it once it has passed; the figures stay in the totals.
           {archived > 0 && ` Lowest point across all ${n} months: ${money(Math.min(...c.bal))}.`}
         </div>
       </section>
