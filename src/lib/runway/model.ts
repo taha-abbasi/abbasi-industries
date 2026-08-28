@@ -31,10 +31,17 @@ export function normalise(input: Partial<RunwayModel> | null | undefined): Runwa
     }));
 
   const lv: Partial<RunwayModel["levers"]> = input.levers ?? {};
+  const hidden = Array.isArray(input.hiddenMonths)
+    ? input.hiddenMonths.map(String).filter((m) => months.includes(m))
+    : [];
+  // never archive the whole model away
+  const hiddenMonths = hidden.length >= months.length ? hidden.slice(0, months.length - 1) : hidden;
+
   return {
     seedVersion: String(input.seedVersion ?? ""),
     startCash: num(input.startCash),
     months,
+    hiddenMonths,
     groups,
     levers: {
       inc: clampPct(num(lv.inc ?? 100)),
@@ -76,3 +83,34 @@ export function compute(model: RunwayModel): Computed {
 }
 
 export { SEED, SEED_VERSION };
+
+/**
+ * What the screen shows. Archived months stay in `compute()` — the running
+ * balance is unbroken — but the view starts at the first visible month and
+ * carries the cash from everything before it as an opening figure.
+ */
+export type View = {
+  idx: number[];
+  months: string[];
+  opening: number;
+  income: number[];
+  spend: number[];
+  net: number[];
+  bal: number[];
+};
+
+export function project(model: RunwayModel, c: Computed, revealAll = false): View {
+  const hidden = new Set(revealAll ? [] : model.hiddenMonths);
+  let idx = model.months.map((_, i) => i).filter((i) => !hidden.has(model.months[i]));
+  if (!idx.length) idx = model.months.map((_, i) => i);
+  const first = idx[0];
+  return {
+    idx,
+    months: idx.map((i) => model.months[i]),
+    opening: first === 0 ? model.startCash : c.bal[first - 1],
+    income: idx.map((i) => c.income[i]),
+    spend: idx.map((i) => c.spend[i]),
+    net: idx.map((i) => c.net[i]),
+    bal: idx.map((i) => c.bal[i]),
+  };
+}
