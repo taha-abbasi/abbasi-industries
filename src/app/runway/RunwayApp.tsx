@@ -187,18 +187,20 @@ export default function RunwayApp() {
 
   const exportCsv = () => {
     const q = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
-    const lines = [[q("Section"), q("Line item"), q("Note"), ...view.months.map(q)].join(",")];
+    // a report wants the whole record, so export every month regardless of what is on screen
+    const all = model.months.map((_, i) => i);
+    const lines = [[q("Section"), q("Line item"), q("Note"), ...model.months.map(q)].join(",")];
     model.groups.forEach((g) => g.rows.forEach((r) => {
       const sign = g.kind === "income" ? 1 : -1;
-      lines.push([q(g.name), q(r.name), q(r.note), ...view.idx.map((i) => (r.v[i] * sign).toFixed(2))].join(","));
+      lines.push([q(g.name), q(r.name), q(r.note), ...all.map((i) => (r.v[i] * sign).toFixed(2))].join(","));
     }));
     lines.push("");
-    lines.push([q(""), q("Total in"), q(""), ...view.income.map((v) => v.toFixed(2))].join(","));
-    lines.push([q(""), q("Total out"), q(""), ...view.spend.map((v) => (-v).toFixed(2))].join(","));
-    lines.push([q(""), q("Net for the month"), q(""), ...view.net.map((v) => v.toFixed(2))].join(","));
-    lines.push([q(""), q("Cash on hand, end of month"), q(""), ...view.bal.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Total in"), q(""), ...c.income.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Total out"), q(""), ...c.spend.map((v) => (-v).toFixed(2))].join(","));
+    lines.push([q(""), q("Net for the month"), q(""), ...c.net.map((v) => v.toFixed(2))].join(","));
+    lines.push([q(""), q("Cash on hand, end of month"), q(""), ...c.bal.map((v) => v.toFixed(2))].join(","));
     download("ale-cash-runway.csv", lines.join("\n"), "text/csv");
-    setStatus("CSV downloaded");
+    setStatus(archived ? `CSV downloaded — all ${model.months.length} months` : "CSV downloaded");
   };
 
   const resetBaseline = () => {
@@ -244,7 +246,8 @@ export default function RunwayApp() {
                 Archive {pastMonths.length} past {pastMonths.length === 1 ? "month" : "months"}
               </button>
             )}
-            <button className={btn} onClick={exportCsv}>Export CSV</button>
+            <button className={btn} onClick={exportCsv}
+                    title="Downloads every month, including archived ones">Export CSV</button>
             <button className={btnStrong} onClick={resetBaseline}>Reset to baseline</button>
           </div>
           <p className="h-4 font-mono text-[11.5px] text-stone">{status}</p>
@@ -256,8 +259,8 @@ export default function RunwayApp() {
       {archived > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line border-l-[3px] border-l-bronze bg-[#F0E7D6] px-4 py-3 text-[13px] text-ink-soft">
           <span>
-            <b>{archived} {archived === 1 ? "month" : "months"} archived</b> — {model.hiddenMonths.join(", ")}.
-            Still counted in every total; {view.months[0]} opens with {money(view.opening)} carried in.
+            <b>{archived} {archived === 1 ? "month" : "months"} archived</b> — {model.hiddenMonths.join(", ")}.{" "}
+            {view.months[0]} opens with {money(view.opening)} carried in.
           </span>
           <button className={btn} onClick={() => setRevealHidden((v) => !v)}>
             {revealHidden ? "Hide them again" : "Show archived months"}
@@ -289,8 +292,7 @@ export default function RunwayApp() {
         <div className="flex flex-wrap items-baseline justify-between gap-2.5 border-b border-line px-6 py-3.5">
           <h2 className="font-display text-xl font-normal">The ledger</h2>
           <span className="text-xs text-stone">
-            Expenses are entered as positive amounts. Use <b>Archive</b> beside a month heading to take it
-            off screen — it still counts in every total.
+            Expenses are entered as positive amounts. Use <b>−</b> beside a month heading to take it off screen.
           </span>
         </div>
         <Ledger
