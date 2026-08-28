@@ -20,6 +20,8 @@ export default function RunwayApp() {
   const [status, setStatus] = useState("");
   const [persisted, setPersisted] = useState(true);
   const [revealHidden, setRevealHidden] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const archiveRef = useRef<HTMLDivElement | null>(null);
 
   const history = useRef<string[]>([]);
   const hIndex = useRef(-1);
@@ -115,6 +117,17 @@ export default function RunwayApp() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [undo, redo]);
+
+  useEffect(() => {
+    if (!archiveOpen) return;
+    const away = (e: MouseEvent) => {
+      if (archiveRef.current && !archiveRef.current.contains(e.target as Node)) setArchiveOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setArchiveOpen(false); };
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", away); document.removeEventListener("keydown", esc); };
+  }, [archiveOpen]);
 
   useEffect(() => {
     if (!status) return;
@@ -247,6 +260,53 @@ export default function RunwayApp() {
                 Archive {pastMonths.length} past {pastMonths.length === 1 ? "month" : "months"}
               </button>
             )}
+            {archived > 0 && (
+              <div className="relative" ref={archiveRef}>
+                <button
+                  className={archiveOpen ? btnStrong : btn}
+                  onClick={() => setArchiveOpen((v) => !v)}
+                  aria-expanded={archiveOpen}
+                  aria-haspopup="true"
+                  title="Archived months"
+                >
+                  Archived ({archived})
+                </button>
+
+                {archiveOpen && (
+                  <div className="absolute left-0 z-50 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-lg border border-line bg-bone p-3 shadow-lg lg:left-auto lg:right-0">
+                    <p className="mb-2 text-[12px] leading-snug text-stone">
+                      {view.months[0]} opens with <b className="text-ink-soft">{money(view.opening)}</b> carried in.
+                    </p>
+
+                    <ul className="mb-3 flex flex-col gap-1">
+                      {model.hiddenMonths.map((m) => (
+                        <li key={m}>
+                          <button
+                            onClick={() => unhideMonth(m)}
+                            className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left
+                                       font-mono text-[12.5px] text-ink-soft transition hover:bg-[#F0E7D6]"
+                          >
+                            <span>{m}</span>
+                            <span className="font-sans text-[11px] text-[#856437]">Restore</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="flex gap-2 border-t border-line pt-2">
+                      <button className={`${btn} flex-1`} onClick={() => setRevealHidden((v) => !v)}>
+                        {revealHidden ? "Hide again" : "Show on screen"}
+                      </button>
+                      {archived > 1 && (
+                        <button className={`${btn} flex-1`} onClick={() => { restoreAll(); setArchiveOpen(false); }}>
+                          Restore all
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <button className={btn} onClick={exportCsv}
                     title="Downloads every month, including archived ones">Export CSV</button>
             <button className={btnStrong} onClick={resetBaseline}>Reset to baseline</button>
@@ -254,36 +314,6 @@ export default function RunwayApp() {
           <p className="h-4 font-mono text-[11.5px] text-stone">{status}</p>
         </div>
       </header>
-
-      {archived > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-md border border-line border-l-[3px] border-l-bronze bg-[#F0E7D6] px-4 py-3 text-[13px] text-ink-soft">
-          <span>
-            <b>{archived} {archived === 1 ? "month" : "months"} archived.</b>{" "}
-            {view.months[0]} opens with {money(view.opening)} carried in.{" "}
-            <span className="text-stone">Click a month to bring it back.</span>
-          </span>
-          <div className="flex flex-wrap items-center gap-2">
-            {model.hiddenMonths.map((m) => (
-              <button
-                key={m}
-                onClick={() => unhideMonth(m)}
-                title={`Bring ${m} back on screen`}
-                className="rounded-full border border-bronze bg-bone px-3 py-1 font-mono text-[12px]
-                           text-[#856437] transition hover:bg-[#E8DCC6]"
-              >
-                {m} ↩
-              </button>
-            ))}
-            <span className="mx-0.5 h-5 w-px bg-line" aria-hidden />
-            <button className={btn} onClick={() => setRevealHidden((v) => !v)}>
-              {revealHidden ? "Hide them again" : "Show all"}
-            </button>
-            {archived > 1 && (
-              <button className={btn} onClick={restoreAll}>Restore all</button>
-            )}
-          </div>
-        </div>
-      )}
 
       <Tiles model={model} view={view} />
 
