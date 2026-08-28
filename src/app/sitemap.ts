@@ -4,6 +4,7 @@ import { site } from "@/data/site";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // /runway is private and PIN-gated — deliberately absent from the sitemap.
   const routes = ["/", "/contact/", "/privacy/", "/terms/"];
   return routes.map((route) => ({
     url: `${site.url}${route}`,
