@@ -135,6 +135,7 @@ export default function RunwayApp() {
     apply((m) => { if (!m.hiddenMonths.includes(label) && m.hiddenMonths.length < m.months.length - 1) m.hiddenMonths.push(label); });
   const unhideMonth = (label: string) =>
     apply((m) => { m.hiddenMonths = m.hiddenMonths.filter((x) => x !== label); });
+  const restoreAll = () => apply((m) => { m.hiddenMonths = []; });
 
   // "on 1st Sep you go and hide Aug" — in one click
   const monthOrder = (label: string) => {
@@ -254,19 +255,38 @@ export default function RunwayApp() {
         </div>
       </header>
 
-      <Tiles model={model} view={view} />
-
       {archived > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line border-l-[3px] border-l-bronze bg-[#F0E7D6] px-4 py-3 text-[13px] text-ink-soft">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-md border border-line border-l-[3px] border-l-bronze bg-[#F0E7D6] px-4 py-3 text-[13px] text-ink-soft">
           <span>
-            <b>{archived} {archived === 1 ? "month" : "months"} archived</b> — {model.hiddenMonths.join(", ")}.{" "}
-            {view.months[0]} opens with {money(view.opening)} carried in.
+            <b>{archived} {archived === 1 ? "month" : "months"} archived.</b>{" "}
+            {view.months[0]} opens with {money(view.opening)} carried in.{" "}
+            <span className="text-stone">Click a month to bring it back.</span>
           </span>
-          <button className={btn} onClick={() => setRevealHidden((v) => !v)}>
-            {revealHidden ? "Hide them again" : "Show archived months"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {model.hiddenMonths.map((m) => (
+              <button
+                key={m}
+                onClick={() => unhideMonth(m)}
+                title={`Bring ${m} back on screen`}
+                className="rounded-full border border-bronze bg-bone px-3 py-1 font-mono text-[12px]
+                           text-[#856437] transition hover:bg-[#E8DCC6]"
+              >
+                {m} ↩
+              </button>
+            ))}
+            <span className="mx-0.5 h-5 w-px bg-line" aria-hidden />
+            <button className={btn} onClick={() => setRevealHidden((v) => !v)}>
+              {revealHidden ? "Hide them again" : "Show all"}
+            </button>
+            {archived > 1 && (
+              <button className={btn} onClick={restoreAll}>Restore all</button>
+            )}
+          </div>
         </div>
       )}
+
+      <Tiles model={model} view={view} />
+
 
       <section className="rounded-lg border border-line bg-bone">
         <div className="flex flex-wrap items-baseline justify-between gap-2.5 border-b border-line px-6 py-3.5">
