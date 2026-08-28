@@ -43,11 +43,13 @@ export default function Ledger(p: Props) {
                     <span>{m}</span>
                     <button
                       onClick={() => (isHidden ? onUnhideMonth(m) : onHideMonth(m))}
-                      title={isHidden ? `Bring ${m} back` : `Archive ${m} — it still counts in the totals`}
+                      title={isHidden ? `Bring ${m} back on screen` : `Archive ${m} — it still counts in every total`}
                       aria-label={isHidden ? `Unarchive ${m}` : `Archive ${m}`}
-                      className="rounded px-1 text-stone hover:bg-[#EFE7D8] hover:text-ink"
+                      className="rounded border border-line bg-ivory px-1.5 py-0.5 text-[9.5px] font-medium
+                                 uppercase tracking-normal text-stone transition
+                                 hover:border-bronze hover:bg-[#F0E7D6] hover:text-[#856437]"
                     >
-                      {isHidden ? "+" : "−"}
+                      {isHidden ? "Restore" : "Archive"}
                     </button>
                   </div>
                 </th>
