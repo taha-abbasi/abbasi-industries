@@ -1,6 +1,6 @@
 import type { RunwayModel } from "./types";
 
-export const SEED_VERSION = "2026-08-28a";
+export const SEED_VERSION = "2026-08-28b";
 
 // Seeded from the "Aug 26" tab of Budgeting — Monthly — AI.xlsx, then amended
 // on the 2026-08-27 call: IVF moved to January, payoffs slid one month,
@@ -43,7 +43,7 @@ export const SEED: RunwayModel = {
       { name:"White City Water",           note:"", v:[65,65,65,65,65,65] },
       { name:"Sandy Suburban",             note:"", v:[15.04,15.04,15.04,15.04,15.04,15.04] },
       { name:"Wasatch Front waste (trash & recycling)", note:"", v:[26,26,26,26,26,26] },
-      { name:"Google Fiber",               note:"Aug paid", v:[0,32.13,32.13,32.13,32.13,32.13] },
+      { name:"Google Fiber",               note:"Aug paid", v:[0,71.40,71.40,71.40,71.40,71.40] },
       { name:"AT&T",                       note:"", v:[311,290,290,290,290,290] }
     ]},
     { name:"Living & insurance", kind:"expense", rows:[
