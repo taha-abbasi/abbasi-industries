@@ -1,6 +1,6 @@
 import type { RunwayModel } from "./types";
 
-export const SEED_VERSION = "2026-08-28e";
+export const SEED_VERSION = "2026-08-28f";
 
 // Seeded from the "Aug 26" tab of Budgeting — Monthly — AI.xlsx, then amended
 // on the 2026-08-27 call: IVF moved to January, payoffs slid one month,
@@ -14,9 +14,9 @@ export const SEED: RunwayModel = {
            "Feb 2027","Mar 2027","Apr 2027","May 2027","Jun 2027","Jul 2027"],
   groups: [
     { name:"Income", kind:"income", rows:[
-      { name:"Salary",            note:"",   v:[0,30000,30000,30000,30000,30000,30000,30000,30000,30000,30000,30000] },
+      { name:"Salary",            note:"approved",   v:[0,31800,31800,31800,31800,31800,31800,31800,31800,31800,31800,31800] },
       { name:"Contractor Income", note:"",   v:[7500,0,0,0,0,0,0,0,0,0,0,0] },
-      { name:"Bonus",             note:"quarterly",   v:[50000,0,0,0,35000,27000,0,0,27000,0,0,27000] },
+      { name:"Bonus",             note:"quarterly, base",   v:[50000,0,0,0,35000,28620,0,0,28620,0,0,28620] },
       { name:"Other",             note:"",  v:[0,10000,0,0,0,0,0,0,0,0,0,0] }
     ]},
     { name:"Debt & credit", kind:"expense", rows:[
